@@ -5,6 +5,67 @@
 
 // based on http://www.bogotobogo.com/DesignPatterns/strategy.php
 
+//Before
+
+class CollectionI
+{
+public:
+    CollectionI()  {}
+    virtual ~CollectionI() {}
+    virtual void sort() = 0;
+};
+
+class CollectionByAuthor : public CollectionI
+{
+public:
+    virtual ~CollectionByAuthor() {}
+    void sort()
+    {
+        std::cout << "Sort collection by Author\n";
+    }
+};
+
+class CollectionByDate : public CollectionI
+{
+public:
+    virtual ~CollectionByDate() {}
+    void sort()
+    {
+        std::cout << "Sort collection by Date\n";
+    }
+};
+
+class CollectionByGenre : public CollectionI
+{
+public:
+    virtual ~CollectionByGenre() {}
+    void sort()
+    {
+        std::cout << "Sort collection by Genre\n";
+    }
+};
+
+
+TEST_SUITE_BEGIN("StrategyTest.cpp");
+
+
+TEST_CASE("Can't change behavior at run time... I'm bound to one implementation only and not easily extensible")
+{
+    CollectionByAuthor  books;
+    CollectionByDate    newspappers;
+
+    books.sort();
+    newspappers.sort();
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+//
+//  Now the Sun of the Design Patterns shine...
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
 //Strategy
 class SortBehavior
 {
@@ -57,8 +118,6 @@ public:
         m_sort->sort();
     }
 };
-
-TEST_SUITE_BEGIN("StrategyTest.cpp");
 
 TEST_CASE("Encapsulate a family of algorithm into their own set of classes")
 {
