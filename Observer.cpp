@@ -24,16 +24,28 @@
 // notyfikacja na telefonach uzytkownikow
 // notyfikacja mailem do zainteresownaych
 
-class Display
-{
-    virtual void updateData(double value) = 0;
-};
+//class Display
+//{
+//    virtual void updateData(double value) = 0;
+//};
 
 class Stock
 {
 private:
+    std::string name;
     double value;
+public:
+    void updateValue(double newValue)
+    {
+        //this method is called periodically - we don't care how
+        value = newValue;
+
+
+        //update all displays
+    }
 };
+
+
 
 TEST_SUITE_BEGIN("Observer.cpp");
 
