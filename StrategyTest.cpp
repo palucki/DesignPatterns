@@ -18,7 +18,6 @@ public:
 class CollectionByAuthor : public CollectionI
 {
 public:
-    virtual ~CollectionByAuthor() {}
     void sort()
     {
         std::cout << "Sort collection by Author\n";
@@ -28,7 +27,6 @@ public:
 class CollectionByDate : public CollectionI
 {
 public:
-    virtual ~CollectionByDate() {}
     void sort()
     {
         std::cout << "Sort collection by Date\n";
@@ -38,7 +36,6 @@ public:
 class CollectionByGenre : public CollectionI
 {
 public:
-    virtual ~CollectionByGenre() {}
     void sort()
     {
         std::cout << "Sort collection by Genre\n";
