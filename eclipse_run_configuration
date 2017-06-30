@@ -1,0 +1,2 @@
+#pass as an argument to standard run configuration
+--no-colors --source-file=*${resource_name} -nv

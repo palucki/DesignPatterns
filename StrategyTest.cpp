@@ -42,10 +42,6 @@ public:
     }
 };
 
-
-TEST_SUITE_BEGIN("StrategyTest.cpp");
-
-
 TEST_CASE("Can't change behavior at run time... I'm bound to one implementation only and not easily extensible")
 {
     CollectionByAuthor  books;
@@ -144,5 +140,3 @@ TEST_CASE("Change behavior at run time")
     books.set_sort(&sortByGenre);
     books.sort();
 }
-
-TEST_SUITE_END();

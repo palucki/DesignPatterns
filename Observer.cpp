@@ -86,8 +86,6 @@ public:
     }
 };
 
-TEST_SUITE_BEGIN("Observer.cpp");
-
 ///////////////////////////////////////////////////////////////////////////////
 //
 //  Now the Sun of the Design Patterns shine...
@@ -114,5 +112,3 @@ TEST_CASE("Typical usage of an observer")
 
     motoStock.setValue(5.1);
 }
-
-TEST_SUITE_END();

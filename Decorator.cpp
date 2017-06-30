@@ -2,7 +2,6 @@
 #include <iostream>
 #include <memory>
 
-TEST_SUITE_BEGIN("Decorator.cpp");
 //Example presenting Astro Subscriber Interface
 // Window
 // WindowWithScrollbar
@@ -36,12 +35,6 @@ class WindowWithScrollbarAndDate : public Window
 public:
     void show() { std::cout << "Showing Window with scrollbar and time & date\n"; }
 };
-//powiedziec tylko w prezentacji ze decoratora sie uzywa na przyklad do strumieni i podac te przyklady oraz ze na przyklad do ramek by to moglo byc?
-// powiedziec ze tu zeby wybrac KIEDY sie cos odpali to musi byc zahardkodowane
-//
-// fajny przyklad: mamy jakis zbior danych w arkuszu, na ktoyr stosujemy formatowanie warunkowe i tak na pryzklad pogrubaimy, podkreslamy, zmieniamy kolor w zaleznosci od danych
-// kazdy taki element filtra to dekorator
-
 
 TEST_CASE("Check this awesome subscriber interface!!!" * doctest::skip())
 {
@@ -56,11 +49,13 @@ TEST_CASE("Check this awesome subscriber interface!!!" * doctest::skip())
     currentDisplay.reset(new WindowWithScrollbarAndDate);
     currentDisplay->show();
 
-    //i co jesli teraz mamy dodac np Channel Number do ekranu?
+    // What is wrong with it?
+    // 1) hard to extend it with new decoration ( e.q. CurrentChannel)
+    // 2) fixed calls' order (e.q. a->b->c and to have b->c->a we need additional classes
+    // 3) fixed number of decorations (what if someone would like to has triple cheese in pizza?)
 }
 
 }
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //
@@ -128,14 +123,11 @@ public:
     }
 };
 
-TEST_CASE("Typical usage of an decorator")
+TEST_CASE("Typical usage of an decorator"  * doctest::skip())
 {
     Window* astroLcd = new WelcomeMessage(new CurrentDate(new Scrollbar(new SubscriberLcd)));
 
     astroLcd->show();
 }
 
-
 }
-
-TEST_SUITE_END();
