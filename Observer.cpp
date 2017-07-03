@@ -18,6 +18,71 @@
 // pokazac ze mozna zmienic w czasie wykonywania
 // pokzazc ze mozna robic rozne histerezy (setChanged)                    PUSH vs PULL
 
+namespace RawDesign {
+
+class LcdScreen
+{
+public:
+    void notify(double value)
+    {
+        std::cout << "Updating LcdScreen\n";
+    }
+};
+
+class Buzzer
+{
+public:
+    void notify(double value)
+    {
+        std::cout << "Triggering Buzzer\n";
+    }
+};
+
+class SmsNotification
+{
+public:
+    void notify(double value)
+    {
+        std::cout << "Sending SmsNotification\n";
+    }
+};
+
+class Stock
+{
+private:
+    double value;
+    LcdScreen lcd;
+    Buzzer buzz;
+    SmsNotification sms;
+public:
+    void valueChanged()
+    {
+        //this method is called periodically - we don't care how
+        lcd.notify(value);
+        buzz.notify(value);
+        sms.notify(value);
+    }
+
+    void setValue(double newValue)
+    {
+        //just for test purposes
+        value = newValue;
+        valueChanged();
+    }
+};
+
+TEST_CASE("Raw notifications"  * doctest::skip())
+{
+    Stock motoStock;
+
+    motoStock.setValue(1.0);
+//after few hours
+    motoStock.setValue(5.0);
+}
+
+}
+
+namespace DesignPatterns {
 
 //Observer
 class Display
@@ -92,7 +157,7 @@ public:
 //
 ///////////////////////////////////////////////////////////////////////////////
 
-TEST_CASE("Typical usage of an observer")
+TEST_CASE("Typical usage of an observer" * doctest::skip())
 {
     auto lcd  = std::make_shared<LcdScreen>();
     auto buzz = std::make_shared<Buzzer>();
@@ -111,4 +176,6 @@ TEST_CASE("Typical usage of an observer")
     motoStock.detach(buzz);
 
     motoStock.setValue(5.1);
+}
+
 }
