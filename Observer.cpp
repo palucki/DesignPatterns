@@ -6,18 +6,6 @@
 #include <algorithm>
 
 
-//Zrobic tutaj prosty przyklad
-
-// 3 miejsca w ktorych jest potrzebna notyfikacja
-// i dodac recznie 4 miejsce albo inny paramter
-
-// potem 3 miejsca z observerem i dodanie 4 miejsca - jakie jest proste
-
-//pozniej sie przelaczyc na rzecyzwisty przyklad
-
-// pokazac ze mozna zmienic w czasie wykonywania
-// pokzazc ze mozna robic rozne histerezy (setChanged)                    PUSH vs PULL
-
 namespace RawDesign {
 
 class LcdScreen
@@ -29,15 +17,6 @@ public:
     }
 };
 
-class Buzzer
-{
-public:
-    void notify(double value)
-    {
-        std::cout << "Triggering Buzzer\n";
-    }
-};
-
 class SmsNotification
 {
 public:
@@ -45,6 +24,24 @@ public:
     {
         std::cout << "Sending SmsNotification\n";
     }
+};
+
+class Buzzer
+{
+public:
+    void notify(double value)
+    {
+        if(enabled)
+        {
+            std::cout << "Triggering Buzzer\n";
+        }
+    }
+    void enable(bool value)
+    {
+        enabled = value;
+    }
+private:
+    bool enabled = false;
 };
 
 class Stock
@@ -59,8 +56,8 @@ public:
     {
         //this method is called periodically - we don't care how
         lcd.notify(value);
-        buzz.notify(value);
         sms.notify(value);
+        buzz.notify(value);
     }
 
     void setValue(double newValue)
@@ -69,30 +66,44 @@ public:
         value = newValue;
         valueChanged();
     }
+
+    void enableBuzzer(bool value)
+    {
+        buzz.enable(value);
+    }
 };
 
-TEST_CASE("Raw notifications"  * doctest::skip())
+TEST_CASE("Raw notifications" * doctest::skip())
 {
     Stock motoStock;
 
+    motoStock.enableBuzzer(true);
     motoStock.setValue(1.0);
 //after few hours
+    motoStock.enableBuzzer(false);
     motoStock.setValue(5.0);
 }
 
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//
+//  Now the Sun of the Design Patterns shine...
+//
+///////////////////////////////////////////////////////////////////////////////
+
+
 namespace DesignPatterns {
 
 //Observer
-class Display
+class NotificationChannel
 {
 public:
-    virtual ~Display() {}
+    virtual ~NotificationChannel() {}
     virtual void notify(double value) = 0;
 };
 
-class LcdScreen : public Display
+class LcdScreen : public NotificationChannel
 {
 public:
     void notify(double value) override
@@ -101,7 +112,7 @@ public:
     }
 };
 
-class Buzzer : public Display
+class Buzzer : public NotificationChannel
 {
 public:
     void notify(double value) override
@@ -110,7 +121,7 @@ public:
     }
 };
 
-class SmsNotification: public Display
+class SmsNotification: public NotificationChannel
 {
 public:
     void notify(double value) override
@@ -123,7 +134,7 @@ class Stock
 {
 private:
     double value;
-    std::vector<std::shared_ptr<Display>> observers;
+    std::vector<std::shared_ptr<NotificationChannel>> observers;
 public:
     void valueChanged()
     {
@@ -134,11 +145,11 @@ public:
         }
     }
 
-    void attach(std::shared_ptr<Display> newObserver)
+    void attach(std::shared_ptr<NotificationChannel> newObserver)
     {
         observers.push_back(newObserver);
     }
-    void detach(std::shared_ptr<Display> observer)
+    void detach(std::shared_ptr<NotificationChannel> observer)
     {
         observers.erase(std::remove(observers.begin(), observers.end(), observer), observers.end());
     }
@@ -151,13 +162,7 @@ public:
     }
 };
 
-///////////////////////////////////////////////////////////////////////////////
-//
-//  Now the Sun of the Design Patterns shine...
-//
-///////////////////////////////////////////////////////////////////////////////
-
-TEST_CASE("Typical usage of an observer" * doctest::skip())
+TEST_CASE("Typical usage of an observer")
 {
     auto lcd  = std::make_shared<LcdScreen>();
     auto buzz = std::make_shared<Buzzer>();
@@ -171,8 +176,8 @@ TEST_CASE("Typical usage of an observer" * doctest::skip())
 
     motoStock.setValue(1.0);
 //after few hours
-    motoStock.setValue(5.0);
 
+//when someone is annoyed with buzzer
     motoStock.detach(buzz);
 
     motoStock.setValue(5.1);

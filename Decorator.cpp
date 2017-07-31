@@ -3,11 +3,6 @@
 #include <memory>
 
 //Example presenting Astro Subscriber Interface
-// Window
-// WindowWithScrollbar
-// WindowWithDate
-// WindowWithScrollbarAndDate
-// WindowWithScrollbarAndChannelNumber
 
 namespace RawDesign {
 
@@ -112,10 +107,10 @@ public:
     }
 };
 
-class WelcomeMessage : public Decorator
+class WarningMessage : public Decorator
 {
 public:
-    WelcomeMessage(Window* parent) : Decorator(parent) {}
+    WarningMessage(Window* parent) : Decorator(parent) {}
     void show() override
     {
         std::cout << "Welcome!\n";
@@ -123,9 +118,9 @@ public:
     }
 };
 
-TEST_CASE("Typical usage of an decorator"  * doctest::skip())
+TEST_CASE("Typical usage of an decorator")
 {
-    Window* astroLcd = new WelcomeMessage(new CurrentDate(new Scrollbar(new SubscriberLcd)));
+    Window* astroLcd = new WarningMessage(new CurrentDate(new Scrollbar(new SubscriberLcd)));
 
     astroLcd->show();
 }
