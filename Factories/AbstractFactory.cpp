@@ -2,6 +2,59 @@
 #include <memory>
 #include "doctest.h"
 
+
+namespace RawDesign
+{
+
+#define D_PLATFORM
+
+class Socket
+{
+public:
+    Socket()
+    {
+#ifdef D_PLATFORM
+        //initialize for D_PLATFORM
+#else
+        //initialize for G_PLATFORM
+#endif
+    }
+};
+
+class FrameProcessing
+{
+public:
+    FrameProcessing()
+    {
+#ifdef D_PLATFORM
+        //initialize for D_PLATFORM
+#else
+        //initialize for G_PLATFORM
+#endif
+    }
+};
+
+class Router
+{
+public:
+    void handleFrame()
+    {
+        std::cout << "Received frame in Router \n";
+        Socket socket;
+
+        std::cout << "Processing frame in Router\n";
+        FrameProcessing frameProcessing;
+    }
+};
+
+TEST_CASE("Let's create Routers on different platforms...")// * doctest::skip())
+{
+    Router router;
+    router.handleFrame();
+}
+
+}
+
 namespace AbstractFactory
 {
 
@@ -105,7 +158,7 @@ public:
     }
 };
 
-TEST_CASE("Let's create Routers on different platforms")// * doctest::skip())
+TEST_CASE("We'd better use Abstract Factory for this purpose" * doctest::skip())
 {
     Router router(new GPlatformFactory);
     router.handleFrame();
