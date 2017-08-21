@@ -2,6 +2,66 @@
 #include <memory>
 #include "doctest.h"
 
+
+namespace RawDesign {
+
+class Ping {
+public:
+    void send() { std::cout << "Sending Ping frame\n"; }
+    void printSize() { std::cout << "Ping frame's size: 1\n"; }
+};
+
+class Data {
+public:
+    void send() { std::cout << "Sending Data frame\n"; }
+    void printSize() { std::cout << "Data frame's size: 2\n"; }
+};
+
+class RawUdp {
+public:
+    void send() { std::cout << "Sending RawUdp frame\n"; }
+    void printSize() { std::cout << "RawUdp frame's size: 3\n"; }
+};
+
+class TrafficGenerator
+{
+public:
+    void sendFrame(std::string type)
+    {
+        if("Ping" == type)
+        {
+            Ping frame;
+            frame.send();
+        }
+        else if("Data" == type)
+        {
+            Data frame;
+            frame.send();
+        }
+        else if("RawUdp" == type)
+        {
+            RawUdp frame;
+            frame.send();
+        }
+        else
+        {
+            std::cout << "Unknown frame type\n";
+        }
+    }
+};
+
+
+TEST_CASE("Let's create some frames")// * doctest::skip())
+{
+    TrafficGenerator generator;
+
+    generator.sendFrame("Ping");
+    generator.sendFrame("RawUdp");
+}
+
+}
+
+
 namespace FactoryMethod {
 
 class Frame
@@ -62,7 +122,7 @@ public:
     virtual Frame* createFrame(std::string type) = 0;
     void sendFrame(std::string type)
     {
-        auto frame = createFrame(type);
+        auto frame = std::unique_ptr<Frame>(createFrame(type));
         if(frame)
         {
             frame->send();
@@ -101,7 +161,7 @@ public:
 class TcpTrafficGenerator : public TrafficGenerator
 {
 public:
-    TcpFrame* createFrame(std::string type) override
+    Frame* createFrame(std::string type) override
     {
         if("Ping" == type)
         {
@@ -123,7 +183,7 @@ public:
 };
 
 
-TEST_CASE("Let's create some frames")// * doctest::skip())
+TEST_CASE("Let's create some frames" * doctest::skip())
 {
     auto testTrafficGenerator = std::unique_ptr<TrafficGenerator>(new UdpTrafficGenerator);
     auto releasableTrafficGenerator = std::unique_ptr<TrafficGenerator>(new TcpTrafficGenerator);
@@ -137,7 +197,3 @@ TEST_CASE("Let's create some frames")// * doctest::skip())
     releasableTrafficGenerator->sendFrame("CorruptedFrame");
 }
 }
-
-
-//Factory Method to pojedyncza metoda, tworząca ten sam typ obiektu. Tworzenie obiektów jednak może być oddelegowane do klas pochodnych. W praktyce, często tworzymy normalny obiekt biznesowy, w którym występujące po prostu metoda Create. Rzadko tworzy się specjalnie osobną klasę “Factory”, aby zaimplementować factory method.
-//Abstract Factory jest odpowiedzialny za tworzenie obiektów należących do tej samej grupy, rodziny. Zwykle tworzy się osobne klasy, aby zaimplementować ten wzorzec. Warto wspomnieć, że różne frameworki IoC wspierają fabryki i automatycznie generują je w formie delegaty Func<T1,T2,…>
