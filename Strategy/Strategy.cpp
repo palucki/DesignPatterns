@@ -10,8 +10,7 @@
 class CollectionI
 {
 public:
-    CollectionI()  {}
-    virtual ~CollectionI() {}
+    virtual ~CollectionI() = default;
     virtual void sort() = 0;
 };
 
@@ -63,7 +62,7 @@ TEST_CASE("Can't change behavior at run time... I'm bound to one implementation 
 class SortBehavior
 {
 public:
-    virtual ~SortBehavior() { }
+    virtual ~SortBehavior() = default;
     virtual void sort() const = 0;
 };
 

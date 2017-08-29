@@ -9,7 +9,7 @@ namespace RawDesign {
 class Window
 {
 public:
-    virtual ~Window() {}
+    virtual ~Window() = default;
     virtual void show() = 0;
 };
 
@@ -63,7 +63,7 @@ namespace DecoratorDesign {
 class Window
 {
 public:
-    virtual ~Window() {}
+    virtual ~Window() = default;
     virtual void show() = 0;
 };
 

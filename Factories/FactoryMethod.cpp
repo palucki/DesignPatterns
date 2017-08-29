@@ -67,7 +67,7 @@ namespace FactoryMethod {
 class Frame
 {
 public:
-    virtual ~Frame() { }
+    virtual ~Frame() = default;
     virtual void send() = 0;
 };
 
@@ -118,7 +118,7 @@ public:
 class TrafficGenerator
 {
 public:
-    virtual ~TrafficGenerator() { }
+    virtual ~TrafficGenerator() = default;
     virtual Frame* createFrame(std::string type) = 0;
     void sendFrame(std::string type)
     {

@@ -61,19 +61,19 @@ namespace AbstractFactory
 class Socket
 {
 public:
-    virtual ~Socket() {}
+    virtual ~Socket() = default;
 };
 
 class FrameProcessing
 {
 public:
-    virtual ~FrameProcessing() {}
+    virtual ~FrameProcessing() = default;
 };
 
 class PlatformFactory
 {
 public:
-    virtual ~PlatformFactory() {}
+    virtual ~PlatformFactory() = default;
     virtual Socket* createSocket() = 0;
     virtual FrameProcessing* createFrameProcessing() = 0;
 };

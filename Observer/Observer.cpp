@@ -99,7 +99,7 @@ namespace DesignPatterns {
 class NotificationChannel
 {
 public:
-    virtual ~NotificationChannel() {}
+    virtual ~NotificationChannel() = default;
     virtual void notify(double value) = 0;
 };
 

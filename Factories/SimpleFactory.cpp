@@ -96,7 +96,7 @@ namespace SimpleFactory {
 class Frame
 {
 public:
-    virtual ~Frame() { }
+    virtual ~Frame() = default;
     virtual void send() = 0;
     virtual void printSize() = 0;
 };
