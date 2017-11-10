@@ -1,5 +1,6 @@
 #include <iostream>
 #include <memory>
+#include <stack>
 
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
@@ -7,8 +8,8 @@
 using namespace cv;
 using namespace std;
 
-//receiver - ImageProcessor (ale mogloby tez byc wiecej np, Light, GarageDoor)
-//invoker - Friendly GUI, ktore umozliwia latwe klikniecie i kilka operacji, w tym undo, makra itp
+//receiver - ImageProcessor (ale mogloby tez byc wiecej np, Light, GarageDoor), odbiorca
+//invoker - Command Stack, ale powiedzieć ze to moze byc GUI albo coś - przechowuje komendy konkretne
 //client (tworzacy komendy) - main
 
 
@@ -51,65 +52,114 @@ public:
 class Command
 {
 public:
-    Command(ImageProcessor* theProc, Mat theSrc) : proc(theProc), src(theSrc) {}
+    Command(ImageProcessor* proc, Mat& theDst) : proc(proc), dst(theDst) {}
     virtual ~Command() = default;
-    virtual Mat execute() = 0;
-    virtual Mat undo() = 0;
+    virtual void execute() = 0;
+    virtual void undo() = 0;
 
 protected:
     ImageProcessor *proc;
-    Mat src;
+    Mat& dst;
 };
 
 class MoveRight : public Command
 {
 public:
-    MoveRight(ImageProcessor* proc, Mat src) : Command(proc, src) {};
-    Mat execute()
+    MoveRight(ImageProcessor* proc,  Mat& theDst)
+    : Command(proc, theDst) {}
+
+    void execute() override
     {
-        src = proc->translate(src, 50, 0);
-        return src;
+        dst = proc->translate(dst, 20, 0);
     }
 
-    Mat undo()
+    void undo() override
     {
-        return proc->translate(src, -50, 0);
+        dst = proc->translate(dst, -20, 0);
     }
 };
 
-//class UpsideDown50Percent : public Command
-//{
-//public:
-//    UpsideDown50Percent(ImageProcessor* proc, Mat src) : Command(proc, src) {};
-//    Mat execute()
-//    {
-//        Mat dst = proc->resize(src, 0.5);
-//
-//        return proc->rotate(dst, 180);
-//    }
-//
-//    Mat und
-//};
+class RotateTenDegree : public Command
+{
+public:
+    RotateTenDegree(ImageProcessor* proc, Mat& theDst)
+    : Command(proc, theDst) {}
+
+    void execute() override
+    {
+        dst = proc->rotate(dst, 10);
+    }
+
+    void undo() override
+    {
+        dst = proc->rotate(dst, -10);
+    }
+};
+
+class CommandStack
+{
+    using CommandPtr = std::shared_ptr<Command>;
+public:
+    void execute(CommandPtr comm)
+    {
+        comm->execute();
+        commands.push(comm);
+    }
+
+    void undo()
+    {
+        if(!commands.empty())
+        {
+            commands.top()->undo();
+            commands.pop();
+        }
+    }
+private:
+    std::stack<CommandPtr> commands;
+};
 
 int main(int argc, char* argv[])
 {
     Mat src = imread("logo.jpg");
-    int padding = 100;
+    int padding = 200;
     Mat canvas(src.rows + padding, src.cols + padding, src.type());
     src.copyTo(canvas(cv::Rect(padding/2, padding/2, src.cols, src.rows)));
 
     ImageProcessor picasso;
+    CommandStack graphicsApp;
+    Mat result(canvas);
 
-    std::shared_ptr<Command> com(new MoveRight(&picasso, canvas));
-
-    auto result = com->execute();
+    std::shared_ptr<Command> moveCmd(new MoveRight(&picasso, result));
+    std::shared_ptr<Command> rotateCmd(new RotateTenDegree(&picasso, result));
 
     imshow("Canvas", canvas);
     imshow("Result", result);
+    waitKey(100);
 
-    result = com->undo();
+    char ans = 0;
+    while(std::cin >> ans)
+    {
+        switch(ans)
+        {
+            case 'm':
+                graphicsApp.execute(moveCmd);
+                break;
 
-    imshow("ResultUndo", result);
+            case 'r':
+                graphicsApp.execute(rotateCmd);
+                break;
 
-    waitKey(0);
+            case 'u':
+                graphicsApp.undo();
+                break;
+
+            case 'q':
+                return 0;
+            default:
+                break;
+        }
+        imshow("Result", result);
+        waitKey(100);
+    }
+
 }
