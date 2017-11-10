@@ -8,10 +8,15 @@
 using namespace cv;
 using namespace std;
 
-//receiver - ImageProcessor (ale mogloby tez byc wiecej np, Light, GarageDoor), odbiorca
-//invoker - Command Stack, ale powiedzieć ze to moze byc GUI albo coś - przechowuje komendy konkretne
-//client (tworzacy komendy) - main
-
+//Example of Command Design Pattern
+//actors:
+//
+//ImageProcessor - receiver of the command,
+//                 there can be a lot of them (i.e. multithreaded image processor, logging image processor)
+//
+//Command Stack  - invoker of the command, stores the commands, it can be GUI, or ThreadPool etc.
+//
+//main()         - client, creates concrete commands, sets receivers
 
 class ImageProcessor
 {
@@ -52,13 +57,13 @@ public:
 class Command
 {
 public:
-    Command(ImageProcessor* proc, Mat& theDst) : proc(proc), dst(theDst) {}
+    Command(ImageProcessor* proc, Mat& theDst) : receiver(proc), dst(theDst) {}
     virtual ~Command() = default;
     virtual void execute() = 0;
     virtual void undo() = 0;
 
 protected:
-    ImageProcessor *proc;
+    ImageProcessor *receiver;
     Mat& dst;
 };
 
@@ -70,12 +75,12 @@ public:
 
     void execute() override
     {
-        dst = proc->translate(dst, 20, 0);
+        dst = receiver->translate(dst, 20, 0);
     }
 
     void undo() override
     {
-        dst = proc->translate(dst, -20, 0);
+        dst = receiver->translate(dst, -20, 0);
     }
 };
 
@@ -88,7 +93,7 @@ public:
     void execute() override
     {
         snapshots.push(dst);
-        dst = proc->rotate(dst, 10);
+        dst = receiver->rotate(dst, 10);
     }
 
     void undo() override
@@ -107,10 +112,10 @@ class CommandStack
 {
     using CommandPtr = std::shared_ptr<Command>;
 public:
-    void execute(CommandPtr comm)
+    void execute(CommandPtr cmd)
     {
-        comm->execute();
-        commands.push(comm);
+        cmd->execute();
+        commands.push(cmd);
     }
 
     void undo()
@@ -143,12 +148,12 @@ int main(int argc, char* argv[])
     Mat canvas(src.rows + padding, src.cols + padding, src.type());
     src.copyTo(canvas(cv::Rect(padding/2, padding/2, src.cols, src.rows)));
 
-    ImageProcessor picasso;
-    CommandStack graphicsApp;
+    ImageProcessor receiver;
+    CommandStack invoker;
     Mat result(canvas);
 
-    std::shared_ptr<Command> moveCmd(new MoveRight(&picasso, result));
-    std::shared_ptr<Command> rotateCmd(new RotateTenDegree(&picasso, result));
+    std::shared_ptr<Command> moveCmd(new MoveRight(&receiver, result));
+    std::shared_ptr<Command> rotateCmd(new RotateTenDegree(&receiver, result));
 
     imshow("Canvas", canvas);
     imshow("Result", result);
@@ -161,15 +166,15 @@ int main(int argc, char* argv[])
         switch(ans)
         {
             case 'm':
-                graphicsApp.execute(moveCmd);
+                invoker.execute(moveCmd);
                 break;
 
             case 'r':
-                graphicsApp.execute(rotateCmd);
+                invoker.execute(rotateCmd);
                 break;
 
             case 'u':
-                graphicsApp.undo();
+                invoker.undo();
                 break;
 
             case 'q':
