@@ -87,13 +87,20 @@ public:
 
     void execute() override
     {
+        snapshots.push(dst);
         dst = proc->rotate(dst, 10);
     }
 
     void undo() override
     {
-        dst = proc->rotate(dst, -10);
+        if(!snapshots.empty())
+        {
+            dst = snapshots.top();
+            snapshots.pop();
+        }
     }
+private:
+    std::stack<Mat> snapshots;
 };
 
 class CommandStack
@@ -118,6 +125,17 @@ private:
     std::stack<CommandPtr> commands;
 };
 
+
+void printControls()
+{
+    std::cout << "\033[2J\033[1;1H";
+    std::cout << "Controls: \n";
+    std::cout << "m - move image 20 pixels right\n";
+    std::cout << "r - rotate image 10 degrees counter clockwise\n";
+    std::cout << "u - undo last operation\n";
+    std::cout << "q - exit\n";
+}
+
 int main(int argc, char* argv[])
 {
     Mat src = imread("logo.jpg");
@@ -134,6 +152,7 @@ int main(int argc, char* argv[])
 
     imshow("Canvas", canvas);
     imshow("Result", result);
+    printControls();
     waitKey(100);
 
     char ans = 0;
@@ -159,6 +178,7 @@ int main(int argc, char* argv[])
                 break;
         }
         imshow("Result", result);
+        printControls();
         waitKey(100);
     }
 
