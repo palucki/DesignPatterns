@@ -4,11 +4,11 @@ The repository contains easy to understand design patterns code examples.
 
 Patterns described so far:
 
-* [Strategy](https://github.com/palucki/DesignPatterns#Strategy)
-* [Observer](https://github.com/palucki/DesignPatterns#Observer)
-* [Decorator](https://github.com/palucki/DesignPatterns#Decorator)
-* [Factory Method, Abstract Factory](https://github.com/palucki/DesignPatterns#Factories)
-* [Command](https://github.com/palucki/DesignPatterns#Command)
+* [Strategy](https://github.com/palucki/DesignPatterns#strategy)
+* [Observer](https://github.com/palucki/DesignPatterns#observer)
+* [Decorator](https://github.com/palucki/DesignPatterns#decorator)
+* [Factory Method, Abstract Factory](https://github.com/palucki/DesignPatterns#factories)
+* [Command](https://github.com/palucki/DesignPatterns#command)
 
 ## Strategy
 
