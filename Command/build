@@ -1,1 +1,1 @@
-g++ --std=c++11  Command.cpp -I/usr/include/opencv  -lopencv_core -lopencv_imgproc -lopencv_highgui -o Command
+g++ --std=c++11  Command.cpp -I/usr/include/opencv  -lopencv_core -lopencv_imgproc -lopencv_highgui -lopencv_imgcodecs -o Command
