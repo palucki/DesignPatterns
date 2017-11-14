@@ -2,29 +2,34 @@
 #include <fstream>
 
 #include "doctest.h"
+#include "MinimalJson.h"
 #include "nlohmann/json.hpp"
 
 // Adapter example
-// When you decide to replace your old, time-worn library with something more up-to-date
-// you face the problem of replacing all library calls throughout the code.
+// When you decide to replace your old, time-worn (or maybe even not working) library
+// with something more up-to-date you face the problem of replacing all library calls throughout the code.
 // The solution to this is to use Adapter Design Pattern, and wrap new library into old interface.
 
-class jsonAdapter : private nlohmann::json
+class MinimalJsonAdapter : public MinimalJson, private nlohmann::json
 {
 public:
-    int size()
+    MinimalJsonAdapter(const std::string& filename) : MinimalJson(filename)
+    {
+
+    }
+    virtual size_t size() override
     {
         return 100;
     }
+private:
+//    nlohmann::json& adaptee;
 };
 
 
 TEST_CASE("A lot of library calls")
 {
-    using json = nlohmann::json;
-
     std::ifstream test_data("Adapter/data1.json");
-    json cds_by_artists;
+    nlohmann::json cds_by_artists;
     test_data >> cds_by_artists;
 
 //    jsonAdapter music_collection;
@@ -46,5 +51,6 @@ TEST_CASE("A lot of library calls")
             std::cout << "\n";
         }
     }
+
 }
 
