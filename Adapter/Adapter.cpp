@@ -1,56 +1,121 @@
 #include <iostream>
 #include <fstream>
+#include <cmath>
 
-#include "doctest.h"
-#include "MinimalJson.h"
-#include "nlohmann/json.hpp"
+#include <plotter.h>
+#include "gnuplot-iostream.h"
 
-// Adapter example
-// When you decide to replace your old, time-worn (or maybe even not working) library
+// When to use
+// 1) you decide to replace your old, time-worn (or maybe even not working) library
 // with something more up-to-date you face the problem of replacing all library calls throughout the code.
 // The solution to this is to use Adapter Design Pattern, and wrap new library into old interface.
+//
+//
 
-class MinimalJsonAdapter : public MinimalJson, private nlohmann::json
-{
-public:
-    MinimalJsonAdapter(const std::string& filename) : MinimalJson(filename)
-    {
+// 2) we want to use some class but it has a incompatible interface.
+// In example we want to call:
+//      prepare()
+//      line(Point start, Point end)
+//      circle(Point center, int radius)
+// but the library needs:
+//      ... a lot of preparing calls...
+//      line(int, int, int, int)
+//      circle(int, int, int)
 
-    }
-    virtual size_t size() override
-    {
-        return 100;
-    }
-private:
-//    nlohmann::json& adaptee;
+
+// Adapter example
+
+struct Point {
+    int x;
+    int y;
 };
 
+struct Line {
+    Point start;
+    Point end;
+};
 
-TEST_CASE("A lot of library calls")
+class TargetInterface
 {
-    std::ifstream test_data("Adapter/data1.json");
-    nlohmann::json cds_by_artists;
-    test_data >> cds_by_artists;
+public:
+    virtual ~TargetInterface() = default;
+    virtual void prepare() = 0;
+    virtual void circle(const Point& p, const int radius) = 0;
+    virtual void line(const Line& l) = 0;
+};
 
-//    jsonAdapter music_collection;
-
-    std::cout << "Artists in collection: " << cds_by_artists.size() << "\n";
-    for(auto artist : cds_by_artists)
+class PlotterAdapter : public TargetInterface, private XPlotter
+{
+public:
+    PlotterAdapter(PlotterParams& params) : XPlotter(params)
     {
-        std::cout << artist["name"] << " has " << artist["albums"].size() << " albums:"<< std::endl;
-
-        for(auto album : artist["albums"])
+    }
+    virtual void prepare() override
+    {
+        if (XPlotter::openpl () < 0)                  // open Plotter
         {
-            std::cout << '\t' << album["title"] << " contains " << album["songs"].size() << " songs."<< std::endl;
-
-            std::cout << "\t\t";
-            for(auto song : album["songs"])
-            {
-                std::cout << song["title"] << ", ";
-            }
-            std::cout << "\n";
+            cerr << "Couldn't open Plotter\n";
+            exit(1);
         }
+
+        XPlotter::fspace (0.0, 0.0, 300.0, 300.0); // specify user coor system
+        XPlotter::bgcolorname("black");
+        XPlotter::flinewidth (0.25);       // line thickness in user coordinates
+        XPlotter::pencolorname ("red");    // path will be drawn in red
+        XPlotter::erase();                // erase Plotter's graphics display
+        XPlotter::fmove (600.0, 300.0);    // position the graphics cursor
     }
 
-}
+    virtual void circle(const Point& p, const int radius) override
+    {
+        XPlotter::circle(p.x, p.y, radius);
+    }
 
+    virtual void line(const Line& l) override
+    {
+        XPlotter::line(l.start.x, l.start.y, l.end.x, l.end.y);
+    }
+};
+
+int main(int argc, char* argv[])
+{
+    // set a Plotter parameter
+    PlotterParams params;
+    //old plotter
+//    XPlotter plotter(params);
+
+    //new, adapted plotter (better interface)
+    PlotterAdapter plotter(params);
+
+    plotter.prepare();
+
+    Point src {100, 100};
+    Point dst {150, 150};
+    Line line {src, dst};
+
+    //old interface
+//    plotter.circle(p.x, p.y, 50);
+//    plotter.line(line.start.x, line.start.y, line.end.x, line.end.y);
+
+    //new interface
+    plotter.circle(src, 50);
+    plotter.circle(dst, 50);
+    plotter.line(line);
+
+
+    Gnuplot gp;
+
+   std::vector<std::tuple<double, double, double> > circle;
+
+   circle.push_back(std::tuple<double, double, double>{1, 1, 0.1});
+   circle.push_back(std::tuple<double, double, double>{0, 1, 0.3});
+
+   // Don't forget to put "\n" at the end of each line!
+   gp << "set xrange [-2:2]\nset yrange [-2:2]\n";
+   // '-' means read from stdin.  The send1d() function sends data to
+   // gnuplot's stdin.
+   gp << "plot '-' with circles\n";
+   gp.send1d(circle);
+
+
+}

@@ -1,0 +1,1 @@
+g++ --std=c++14  Adapter.cpp -lplotter -lXaw -lXmu -lXt -lSM -lICE -lXext -lX11 -lpng -lz -lm -lboost_iostreams -lboost_system -lboost_filesystem -o Adapter
