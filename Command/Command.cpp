@@ -24,9 +24,7 @@ public:
     Mat resize(Mat src, double factor)
     {
         Mat dst;
-
         cv::resize(src, dst, Size(0, 0), factor, factor);
-
         return dst;
     }
 
@@ -113,6 +111,35 @@ private:
     std::stack<Mat> snapshots;
 };
 
+class MacroCommand : public Command
+{
+public:
+    MacroCommand(Mat& theDst) : Command(nullptr, theDst, "Ultra powerful macro") {}
+
+    void add(std::shared_ptr<Command> cmd)
+    {
+        commands.push_back(cmd);
+    }
+
+    void execute() override
+    {
+        for(auto cmd : commands)
+        {
+            cmd->execute();
+        }
+    }
+
+    void undo() override
+    {
+        for(auto cmd = commands.rbegin(); cmd != commands.rend(); ++cmd)
+        {
+            (*cmd)->undo();
+        }
+    }
+private:
+    std::vector<std::shared_ptr<Command>> commands;
+};
+
 class CommandStack
 {
     using CommandPtr = std::shared_ptr<Command>;
@@ -153,6 +180,7 @@ void printControls()
     std::cout << "Controls: \n";
     std::cout << "m - move image 20 pixels right\n";
     std::cout << "r - rotate image 10 degrees counter clockwise\n";
+    std::cout << "3 - powerful mactro\n";
     std::cout << "u - undo last operation\n";
     std::cout << "q - exit\n";
 }
@@ -170,6 +198,12 @@ int main(int argc, char* argv[])
 
     std::shared_ptr<Command> moveCmd(new MoveRight(&receiver, result));
     std::shared_ptr<Command> rotateCmd(new RotateTenDegree(&receiver, result));
+    std::shared_ptr<Command> macroCmd(new MacroCommand(result));
+
+    MacroCommand* macroPtr((MacroCommand*)macroCmd.get());
+    macroPtr->add(moveCmd);
+    macroPtr->add(rotateCmd);
+    macroPtr->add(rotateCmd);
 
     imshow("Result", result);
     printControls();
@@ -186,6 +220,10 @@ int main(int argc, char* argv[])
 
             case 'r':
                 invoker.execute(rotateCmd);
+                break;
+
+            case '3':
+                invoker.execute(macroCmd);
                 break;
 
             case 'u':
