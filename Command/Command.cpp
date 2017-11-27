@@ -57,21 +57,26 @@ public:
 class Command
 {
 public:
-    Command(ImageProcessor* proc, Mat& theDst) : receiver(proc), dst(theDst) {}
+    Command(ImageProcessor* proc, Mat& theDst, std::string theDesc) : receiver(proc), dst(theDst), desc(theDesc) {}
     virtual ~Command() = default;
     virtual void execute() = 0;
     virtual void undo() = 0;
+    std::string str()
+    {
+        return desc;
+    }
 
 protected:
     ImageProcessor *receiver;
     Mat& dst;
+    std::string desc = "Undefined";
 };
 
 class MoveRight : public Command
 {
 public:
     MoveRight(ImageProcessor* proc,  Mat& theDst)
-    : Command(proc, theDst) {}
+    : Command(proc, theDst, "MoveRight") {}
 
     void execute() override
     {
@@ -88,7 +93,7 @@ class RotateTenDegree : public Command
 {
 public:
     RotateTenDegree(ImageProcessor* proc, Mat& theDst)
-    : Command(proc, theDst) {}
+    : Command(proc, theDst, "Rotate 10 degr.") {}
 
     void execute() override
     {
@@ -116,18 +121,29 @@ public:
     {
         cmd->execute();
         commands.push(cmd);
+        descriptions.push_back(cmd->str());
     }
 
     void undo()
     {
-        if(!commands.empty())
+        if(!commands.empty() && !descriptions.empty())
         {
             commands.top()->undo();
             commands.pop();
+            descriptions.pop_back();
+        }
+    }
+    void printCommands()
+    {
+        std::cout << "Command stack:\n";
+        for(auto cmd : descriptions)
+        {
+            std::cout << "\t" << cmd << "\n";
         }
     }
 private:
     std::stack<CommandPtr> commands;
+    std::vector<std::string> descriptions;
 };
 
 
@@ -155,7 +171,6 @@ int main(int argc, char* argv[])
     std::shared_ptr<Command> moveCmd(new MoveRight(&receiver, result));
     std::shared_ptr<Command> rotateCmd(new RotateTenDegree(&receiver, result));
 
-    imshow("Canvas", canvas);
     imshow("Result", result);
     printControls();
     waitKey(100);
@@ -184,6 +199,7 @@ int main(int argc, char* argv[])
         }
         imshow("Result", result);
         printControls();
+        invoker.printCommands();
         waitKey(100);
     }
 
