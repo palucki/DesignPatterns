@@ -173,14 +173,18 @@ private:
     std::vector<std::string> descriptions;
 };
 
+void cls()
+{
+    std::cout << "\033[2J\033[1;1H";
+}
 
 void printControls()
 {
-    std::cout << "\033[2J\033[1;1H";
+    cls();
     std::cout << "Controls: \n";
     std::cout << "m - move image 20 pixels right\n";
     std::cout << "r - rotate image 10 degrees counter clockwise\n";
-    std::cout << "3 - powerful mactro\n";
+    std::cout << "3 - powerful macro\n";
     std::cout << "u - undo last operation\n";
     std::cout << "q - exit\n";
 }
@@ -231,6 +235,7 @@ int main(int argc, char* argv[])
                 break;
 
             case 'q':
+                cls();
                 return 0;
             default:
                 break;
