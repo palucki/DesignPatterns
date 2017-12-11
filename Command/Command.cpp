@@ -55,7 +55,7 @@ public:
 class Command
 {
 public:
-    Command(ImageProcessor* proc, Mat& theDst, std::string theDesc) : receiver(proc), dst(theDst), desc(theDesc) {}
+    Command(ImageProcessor& proc, Mat& theDst, std::string theDesc) : receiver(proc), dst(theDst), desc(theDesc) {}
     virtual ~Command() = default;
     virtual void execute() = 0;
     virtual void undo() = 0;
@@ -65,7 +65,7 @@ public:
     }
 
 protected:
-    ImageProcessor *receiver;
+    ImageProcessor& receiver;
     Mat& dst;
     std::string desc = "Undefined";
 };
@@ -73,30 +73,30 @@ protected:
 class MoveRight : public Command
 {
 public:
-    MoveRight(ImageProcessor* proc,  Mat& theDst)
+    MoveRight(ImageProcessor& proc,  Mat& theDst)
     : Command(proc, theDst, "MoveRight") {}
 
     void execute() override
     {
-        dst = receiver->translate(dst, 20, 0);
+        dst = receiver.translate(dst, 20, 0);
     }
 
     void undo() override
     {
-        dst = receiver->translate(dst, -20, 0);
+        dst = receiver.translate(dst, -20, 0);
     }
 };
 
 class RotateTenDegree : public Command
 {
 public:
-    RotateTenDegree(ImageProcessor* proc, Mat& theDst)
+    RotateTenDegree(ImageProcessor& proc, Mat& theDst)
     : Command(proc, theDst, "Rotate 10 degr.") {}
 
     void execute() override
     {
         snapshots.push(dst);
-        dst = receiver->rotate(dst, 10);
+        dst = receiver.rotate(dst, 10);
     }
 
     void undo() override
@@ -114,12 +114,8 @@ private:
 class MacroCommand : public Command
 {
 public:
-    MacroCommand(Mat& theDst) : Command(nullptr, theDst, "Ultra powerful macro") {}
-
-    void add(std::shared_ptr<Command> cmd)
-    {
-        commands.push_back(cmd);
-    }
+    MacroCommand(ImageProcessor& proc, Mat& theDst, std::vector<std::shared_ptr<Command>> theCommands) : Command(proc, theDst, "Ultra powerful macro"),
+                                                                                   commands(theCommands) {}
 
     void execute() override
     {
@@ -200,14 +196,9 @@ int main(int argc, char* argv[])
     CommandStack invoker;
     Mat result(canvas);
 
-    std::shared_ptr<Command> moveCmd(new MoveRight(&receiver, result));
-    std::shared_ptr<Command> rotateCmd(new RotateTenDegree(&receiver, result));
-    std::shared_ptr<Command> macroCmd(new MacroCommand(result));
-
-    MacroCommand* macroPtr((MacroCommand*)macroCmd.get());
-    macroPtr->add(moveCmd);
-    macroPtr->add(rotateCmd);
-    macroPtr->add(rotateCmd);
+    std::shared_ptr<Command> moveCmd(new MoveRight(receiver, result));
+    std::shared_ptr<Command> rotateCmd(new RotateTenDegree(receiver, result));
+    std::shared_ptr<Command> macroCmd(new MacroCommand(receiver, result, {moveCmd, rotateCmd, rotateCmd}));
 
     imshow("Result", result);
     printControls();
