@@ -120,7 +120,12 @@ public:
 
 TEST_CASE("Typical usage of an decorator")
 {
-    Window* astroLcd = new WarningMessage(new CurrentDate(new Scrollbar(new SubscriberLcd)));
+    SubscriberLcd subLcd;
+    Scrollbar scrollbar(&subLcd);
+    CurrentDate currentDate(&scrollbar);
+    WarningMessage warningMessage(&currentDate);
+
+    Window* astroLcd = &warningMessage;
 
     astroLcd->show();
 }
