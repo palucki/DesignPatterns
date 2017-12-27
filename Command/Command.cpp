@@ -114,7 +114,7 @@ private:
 class MacroCommand : public Command
 {
 public:
-    MacroCommand(ImageProcessor& proc, Mat& theDst, std::vector<std::shared_ptr<Command>> theCommands) : Command(proc, theDst, "Ultra powerful macro"),
+    MacroCommand(ImageProcessor& proc, Mat& theDst, std::vector<Command*> theCommands) : Command(proc, theDst, "Ultra powerful macro"),
                                                                                    commands(theCommands) {}
 
     void execute() override
@@ -133,14 +133,13 @@ public:
         }
     }
 private:
-    std::vector<std::shared_ptr<Command>> commands;
+    std::vector<Command*> commands;
 };
 
 class CommandStack
 {
-    using CommandPtr = std::shared_ptr<Command>;
 public:
-    void execute(CommandPtr cmd)
+    void execute(Command* cmd)
     {
         cmd->execute();
         commands.push(cmd);
@@ -165,7 +164,7 @@ public:
         }
     }
 private:
-    std::stack<CommandPtr> commands;
+    std::stack<Command*> commands;
     std::vector<std::string> descriptions;
 };
 
@@ -196,9 +195,9 @@ int main(int argc, char* argv[])
     CommandStack invoker;
     Mat result(canvas);
 
-    std::shared_ptr<Command> moveCmd(new MoveRight(receiver, result));
-    std::shared_ptr<Command> rotateCmd(new RotateTenDegree(receiver, result));
-    std::shared_ptr<Command> macroCmd(new MacroCommand(receiver, result, {moveCmd, rotateCmd, rotateCmd}));
+    MoveRight moveCmd(receiver, result);
+    RotateTenDegree rotateCmd(receiver, result);
+    MacroCommand macroCmd(receiver, result, {&moveCmd, &rotateCmd, &rotateCmd});
 
     imshow("Result", result);
     printControls();
@@ -210,15 +209,15 @@ int main(int argc, char* argv[])
         switch(ans)
         {
             case 'm':
-                invoker.execute(moveCmd);
+                invoker.execute(&moveCmd);
                 break;
 
             case 'r':
-                invoker.execute(rotateCmd);
+                invoker.execute(&rotateCmd);
                 break;
 
             case '3':
-                invoker.execute(macroCmd);
+                invoker.execute(&macroCmd);
                 break;
 
             case 'u':
