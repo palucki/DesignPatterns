@@ -5,14 +5,60 @@
 #include <plotter.h>
 #include "gnuplot-iostream.h"
 
-// When to use
+// Adapter examples
+
 // 1) you decide to replace your old, time-worn (or maybe even not working) library
 // with something more up-to-date you face the problem of replacing all library calls throughout the code.
 // The solution to this is to use Adapter Design Pattern, and wrap new library into old interface.
-//
-//
 
-// 2) we want to use some class but it has a incompatible interface.
+
+/*void replaceOldLibrary()
+{
+	// set a Plotter parameter
+    PlotterParams params;
+    //old plotter
+//    XPlotter plotter(params);
+
+    //new, adapted plotter (better interface)
+    PlotterAdapter plotter(params);
+
+    plotter.prepare();
+
+    Point src {100, 100};
+    Point dst {150, 150};
+    Line line {src, dst};
+
+    //old interface
+//    plotter.circle(p.x, p.y, 50);
+//    plotter.line(line.start.x, line.start.y, line.end.x, line.end.y);
+
+    //new interface
+    plotter.circle(src, 50);
+    plotter.circle(dst, 50);
+    plotter.line(line);
+
+
+    Gnuplot gp;
+
+   std::vector<std::tuple<double, double, double> > circle;
+
+   circle.push_back(std::tuple<double, double, double>{1, 1, 0.1});
+   circle.push_back(std::tuple<double, double, double>{0, 1, 0.3});
+
+   // Don't forget to put "\n" at the end of each line!
+   gp << "set xrange [-2:2]\nset yrange [-2:2]\n";
+   // '-' means read from stdin.  The send1d() function sends data to
+   // gnuplot's stdin.
+   gp << "plot '-' with circles\n";
+   gp.send1d(circle);
+	
+}*/
+
+
+
+
+
+// 2) we want to use some class but it has a incompatible (or inconvienient) interface.
 // In example we want to call:
 //      prepare()
 //      line(Point start, Point end)
@@ -21,9 +67,6 @@
 //      ... a lot of preparing calls...
 //      line(int, int, int, int)
 //      circle(int, int, int)
-
-
-// Adapter example
 
 struct Point {
     int x;
@@ -77,45 +120,48 @@ public:
     }
 };
 
-int main(int argc, char* argv[])
+void adjustedInterface()
 {
-    // set a Plotter parameter
+	// set a Plotter parameter
     PlotterParams params;
-    //old plotter
-//    XPlotter plotter(params);
-
-    //new, adapted plotter (better interface)
-    PlotterAdapter plotter(params);
-
-    plotter.prepare();
-
-    Point src {100, 100};
+	
+	Point src {100, 100};
     Point dst {150, 150};
     Line line {src, dst};
+	
+	//old plotting interface
+    XPlotter plotter(params);
 
-    //old interface
-//    plotter.circle(p.x, p.y, 50);
-//    plotter.line(line.start.x, line.start.y, line.end.x, line.end.y);
+	if (plotter.openpl () < 0)                  // open Plotter
+	{
+		cerr << "Couldn't open Plotter\n";
+		exit(1);
+	}
+
+	plotter.fspace (0.0, 0.0, 300.0, 300.0); // specify user coor system
+	plotter.bgcolorname("black");
+	plotter.flinewidth (0.25);       // line thickness in user coordinates
+	plotter.pencolorname ("red");    // path will be drawn in red
+	plotter.erase();                // erase Plotter's graphics display
+	plotter.fmove (600.0, 300.0);    // position the graphics cursor
+
+    plotter.circle(src.x, src.y, 50);
+    plotter.circle(dst.x, dst.y, 50);
+    plotter.line(line.start.x, line.start.y, line.end.x, line.end.y);
+
+
+	//new, adapted plotter (better interface)
+    //~ PlotterAdapter plotter(params);
+
+    //~ plotter.prepare();
 
     //new interface
-    plotter.circle(src, 50);
-    plotter.circle(dst, 50);
-    plotter.line(line);
+    //~ plotter.circle(src, 50);
+    //~ plotter.circle(dst, 50);
+    //~ plotter.line(line);	
+}
 
-
-    Gnuplot gp;
-
-   std::vector<std::tuple<double, double, double> > circle;
-
-   circle.push_back(std::tuple<double, double, double>{1, 1, 0.1});
-   circle.push_back(std::tuple<double, double, double>{0, 1, 0.3});
-
-   // Don't forget to put "\n" at the end of each line!
-   gp << "set xrange [-2:2]\nset yrange [-2:2]\n";
-   // '-' means read from stdin.  The send1d() function sends data to
-   // gnuplot's stdin.
-   gp << "plot '-' with circles\n";
-   gp.send1d(circle);
-
-
+int main(int argc, char* argv[])
+{
+	adjustedInterface();
 }
