@@ -11,48 +11,79 @@
 // with something more up-to-date you face the problem of replacing all library calls throughout the code.
 // The solution to this is to use Adapter Design Pattern, and wrap new library into old interface.
 
-
-/*void replaceOldLibrary()
+// Legacy plotter
+class BuggyPlotter //use Gnuplot
 {
-	// set a Plotter parameter
-    PlotterParams params;
-    //old plotter
-//    XPlotter plotter(params);
+public:
+	void drawCircle(int x, int y, int radius)
+	{
+	    Gnuplot gp;
 
-    //new, adapted plotter (better interface)
-    PlotterAdapter plotter(params);
+		std::vector<std::tuple<double, double, double> > circle;
 
-    plotter.prepare();
+		circle.push_back(std::tuple<double, double, double>{x, y, radius});
 
-    Point src {100, 100};
-    Point dst {150, 150};
-    Line line {src, dst};
+		// Don't forget to put "\n" at the end of each line!
+		gp << "set xrange [0:10]\nset yrange [0:10]\n";
+		// '-' means read from stdin.  The send1d() function sends data to
+		// gnuplot's stdin.
+		gp << "plot '-' with circles\n";
+		gp.send1d(circle);
+	}
+};
 
-    //old interface
-//    plotter.circle(p.x, p.y, 50);
-//    plotter.line(line.start.x, line.start.y, line.end.x, line.end.y);
+class RockingCirclePlotter //use XPlotter, no GnuPlot construction each time, we are able to prepare plot differently
+{
+public:
+	RockingCirclePlotter() : plotter(params)
+	{}
+		
+	void prepare()
+	{
+		if (plotter.openpl () < 0)                  // open Plotter
+		{
+			cerr << "Couldn't open Plotter\n";
+			exit(1);
+		}
 
-    //new interface
-    plotter.circle(src, 50);
-    plotter.circle(dst, 50);
-    plotter.line(line);
+		plotter.fspace (0.0, 0.0, 10.0, 10.0); // specify user coor system
+		plotter.bgcolorname("black");
+		plotter.flinewidth (0.25);       // line thickness in user coordinates
+		plotter.pencolorname ("red");    // path will be drawn in red
+		plotter.erase();                // erase Plotter's graphics display
+	}
+	void draw(int x, int y, int radius)
+	{
+		plotter.circle(x, y, radius);
+	}
+private:
+	PlotterParams params;
+	XPlotter plotter;
+};
 
 
-    Gnuplot gp;
+class BuggyPlotterAdapter : public BuggyPlotter, private RockingCirclePlotter
+{
+public:
+	void drawCircle(int x, int y, int radius)
+	{
+		RockingCirclePlotter::prepare();
+		RockingCirclePlotter::draw(x, y, radius);
+	}
+};
 
-   std::vector<std::tuple<double, double, double> > circle;
 
-   circle.push_back(std::tuple<double, double, double>{1, 1, 0.1});
-   circle.push_back(std::tuple<double, double, double>{0, 1, 0.3});
-
-   // Don't forget to put "\n" at the end of each line!
-   gp << "set xrange [-2:2]\nset yrange [-2:2]\n";
-   // '-' means read from stdin.  The send1d() function sends data to
-   // gnuplot's stdin.
-   gp << "plot '-' with circles\n";
-   gp.send1d(circle);
+void replaceOldLibrary()
+{
+	//old library
+	//~ BuggyPlotter plotter;
+	//~ plotter.drawCircle(5, 5, 3);
 	
-}*/
+	//new library
+	BuggyPlotterAdapter plotter;
+	plotter.drawCircle(5, 5, 3);
+	
+}
 
 
 
@@ -130,38 +161,39 @@ void adjustedInterface()
     Line line {src, dst};
 	
 	//old plotting interface
-    XPlotter plotter(params);
+    //~ XPlotter plotter(params);
 
-	if (plotter.openpl () < 0)                  // open Plotter
-	{
-		cerr << "Couldn't open Plotter\n";
-		exit(1);
-	}
+	//~ if (plotter.openpl () < 0)                  // open Plotter
+	//~ {
+		//~ cerr << "Couldn't open Plotter\n";
+		//~ exit(1);
+	//~ }
 
-	plotter.fspace (0.0, 0.0, 300.0, 300.0); // specify user coor system
-	plotter.bgcolorname("black");
-	plotter.flinewidth (0.25);       // line thickness in user coordinates
-	plotter.pencolorname ("red");    // path will be drawn in red
-	plotter.erase();                // erase Plotter's graphics display
-	plotter.fmove (600.0, 300.0);    // position the graphics cursor
+	//~ plotter.fspace (0.0, 0.0, 300.0, 300.0); // specify user coor system
+	//~ plotter.bgcolorname("black");
+	//~ plotter.flinewidth (0.25);       // line thickness in user coordinates
+	//~ plotter.pencolorname ("red");    // path will be drawn in red
+	//~ plotter.erase();                // erase Plotter's graphics display
+	//~ plotter.fmove (600.0, 300.0);    // position the graphics cursor
 
-    plotter.circle(src.x, src.y, 50);
-    plotter.circle(dst.x, dst.y, 50);
-    plotter.line(line.start.x, line.start.y, line.end.x, line.end.y);
+    //~ plotter.circle(src.x, src.y, 50);
+    //~ plotter.circle(dst.x, dst.y, 50);
+    //~ plotter.line(line.start.x, line.start.y, line.end.x, line.end.y);
 
 
 	//new, adapted plotter (better interface)
-    //~ PlotterAdapter plotter(params);
+    PlotterAdapter plotter(params);
 
-    //~ plotter.prepare();
+    plotter.prepare();
 
-    //new interface
-    //~ plotter.circle(src, 50);
-    //~ plotter.circle(dst, 50);
-    //~ plotter.line(line);	
+    //~ //new interface
+    plotter.circle(src, 50);
+    plotter.circle(dst, 50);
+    plotter.line(line);	
 }
 
 int main(int argc, char* argv[])
 {
 	adjustedInterface();
+	replaceOldLibrary();
 }
